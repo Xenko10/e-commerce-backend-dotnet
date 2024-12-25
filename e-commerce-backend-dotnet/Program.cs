@@ -9,7 +9,6 @@ app.MapGet("/", () => "Hello World!");
 app.MapGet("/item", () =>
 {
     var item = new Item(Id: 1, Name: "isana");
-    item.Name = "lol";
     return item;
 });
 
