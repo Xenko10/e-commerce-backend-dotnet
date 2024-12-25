@@ -1,5 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "e-commerce-backend-dotnet", "e-commerce-backend-dotnet\e-commerce-backend-dotnet.csproj", "{3C7527F7-56A3-422D-8946-AD3E698316F8}"
 EndProject
 Global
@@ -12,5 +15,8 @@ Global
 		{3C7527F7-56A3-422D-8946-AD3E698316F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C7527F7-56A3-422D-8946-AD3E698316F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C7527F7-56A3-422D-8946-AD3E698316F8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
