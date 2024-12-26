@@ -1,6 +1,13 @@
-using e_commerce_backend_dotnet;
+ using e_commerce_backend_dotnet;
+using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOpenApi();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
 
 builder.Services.AddCors(options =>
 {
@@ -14,29 +21,26 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
+
 app.UseCors();
 
 app.MapGet("/", () => "Hello World!");
 
-app.MapGet("/product", () =>
+app.MapGet("/product", (AppDbContext db) =>
 {
-    var item = new Product(id: 1, url: "gamepad.png", alt: "gamepad", header: "HAVIT HV-G92 Gamepad", price: 160, priceAfterDiscount: 120, stars: 4.5, opinions: 88);
+    var item = db.Products.FirstOrDefault(p => p.Id == 1);
     return item;
 });
 
-app.MapGet("/products", () =>
+app.MapGet("/products", (AppDbContext db) =>
 {
-    var items = new List<Product>
-    {
-        new Product(id: 1, url: "gamepad.png", alt: "gamepad", header: "HAVIT HV-G92 Gamepad", price: 160, priceAfterDiscount: 120, stars: 4.5, opinions: 88),
-        new Product(id: 2, url: "keyboard.png", alt: "keyboard", header: "AK-900 Wired Keyboard", price: 1160, priceAfterDiscount: 920, stars: 4, opinions: 75),
-        new Product(id: 3, url: "monitor.png", alt: "monitor", header: "IPS LCD Gaming Monitor", price: 400, priceAfterDiscount: 240, stars: 5, opinions: 121),
-        new Product(id: 4, url: "chair.png", alt: "chair", header: "S-Series Comfort Chair", price: 400, priceAfterDiscount: 160, stars: 3.5, opinions: 99),
-        new Product(id: 5, url: "laptop.png", alt: "laptop", header: "ASUS FHD Gaming Laptop", price: 700, priceAfterDiscount: 525, stars: 5, opinions: 325),
-        new Product(id: 6, url: "camera.png", alt: "camera", header: "CANON EOS DSLR Camera", price: 360, priceAfterDiscount: 270, stars: 4, opinions: 95)
-    };
+    var items = db.Products.ToList();
     return items;
 });
-
 
 app.Run();
