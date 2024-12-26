@@ -61,4 +61,29 @@ app.MapPost("/product", async (AppDbContext db, Product productDto) =>
     return Results.Created($"/product/{product.Id}", product);
 });
 
+app.MapGet("/flashsalesproducts", (AppDbContext db) =>
+{
+    var flashSalesProducts = db.FlashSalesProducts.Include(fsp => fsp.Product).ToList();
+    return flashSalesProducts;
+});
+
+app.MapPost("/flashsalesproduct", async (AppDbContext db, int productId) =>
+{
+    var product = await db.Products.FindAsync(productId);
+    if (product == null)
+    {
+        return Results.NotFound("Product not found");
+    }
+
+    var flashSalesProduct = new FlashSalesProduct
+    {
+        ProductId = productId,
+        Product = product
+    };
+
+    db.FlashSalesProducts.Add(flashSalesProduct);
+    await db.SaveChangesAsync();
+    return Results.Created($"/flashsalesproduct/{flashSalesProduct.Id}", flashSalesProduct);
+});
+
 app.Run();
