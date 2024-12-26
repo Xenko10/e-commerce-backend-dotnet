@@ -43,4 +43,22 @@ app.MapGet("/products", (AppDbContext db) =>
     return items;
 });
 
+app.MapPost("/product", async (AppDbContext db, Product productDto) =>
+{
+    var product = new Product
+    {
+        Url = productDto.Url,
+        Alt = productDto.Alt,
+        Header = productDto.Header,
+        Price = productDto.Price,
+        PriceAfterDiscount = productDto.PriceAfterDiscount,
+        Stars = productDto.Stars,
+        Opinions = productDto.Opinions
+    };
+
+    db.Products.Add(product);
+    await db.SaveChangesAsync();
+    return Results.Created($"/product/{product.Id}", product);
+});
+
 app.Run();
