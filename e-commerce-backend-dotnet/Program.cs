@@ -86,7 +86,7 @@ app.MapGet("/flash-sales-products", async (AppDbContext db, CancellationToken ct
     return flashSalesProducts;
 });
 
-app.MapPost("/flash-sales-products", async (AppDbContext db, int productId, CancellationToken ct) =>
+app.MapPost("/flash-sales-products/{productId:int}", async (AppDbContext db, int productId, CancellationToken ct) =>
 {
     var product = await db.Products.FindAsync(productId, ct);
     if (product == null)
@@ -102,7 +102,7 @@ app.MapPost("/flash-sales-products", async (AppDbContext db, int productId, Canc
 
     db.FlashSalesProducts.Add(flashSalesProduct);
     await db.SaveChangesAsync(ct);
-    return Results.Created($"/flashsalesproducts/{flashSalesProduct.Id}", flashSalesProduct);
+    return Results.Created($"/flash-sales-products/{flashSalesProduct.Id}", flashSalesProduct);
 });
 
 await Migrate(app);
