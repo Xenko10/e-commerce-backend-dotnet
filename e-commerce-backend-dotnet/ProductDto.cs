@@ -1,4 +1,4 @@
-﻿namespace e_commerce_backend_dotnet;
+﻿namespace Ecommerce;
 
 public class Product
 {

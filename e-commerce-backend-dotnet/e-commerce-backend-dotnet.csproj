@@ -4,7 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <RootNamespace>e_commerce_backend_dotnet</RootNamespace>
+        <RootNamespace>Ecommerce</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

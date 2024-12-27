@@ -1,5 +1,6 @@
  using e_commerce_backend_dotnet;
-using Microsoft.EntityFrameworkCore;
+ using Ecommerce;
+ using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,7 +14,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policyBuilder =>
     {
-        policyBuilder.WithOrigins("http://localhost:3000")
+        policyBuilder.AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -31,19 +32,20 @@ app.UseCors();
 
 app.MapGet("/", () => "Hello World!");
 
-app.MapGet("/product", (AppDbContext db, int productId) =>
+app.MapGet("/product", async (AppDbContext db, int productId, CancellationToken ct) =>
 {
-    var item = db.Products.FirstOrDefault(p => p.Id == productId);
+    var item = await db.Products.FirstOrDefaultAsync(p => p.Id == productId, cancellationToken: ct);
     return item;
 });
 
+// TODO add pagination + pagination validation + add canceltion token
 app.MapGet("/products", (AppDbContext db) =>
 {
     var items = db.Products.ToList();
     return items;
 });
 
-app.MapPost("/product", async (AppDbContext db, Product productDto) =>
+app.MapPost("/products", async (AppDbContext db, Product productDto) =>
 {
     var product = new Product
     {
@@ -61,6 +63,7 @@ app.MapPost("/product", async (AppDbContext db, Product productDto) =>
     return Results.Created($"/product/{product.Id}", product);
 });
 
+// add As split query 
 app.MapGet("/flashsalesproducts", (AppDbContext db) =>
 {
     var flashSalesProducts = db.FlashSalesProducts
@@ -99,4 +102,17 @@ app.MapPost("/flashsalesproduct", async (AppDbContext db, int productId) =>
     return Results.Created($"/flashsalesproduct/{flashSalesProduct.Id}", flashSalesProduct);
 });
 
+await Migrate(app);
+
 app.Run();
+
+async Task Migrate(WebApplication webApplication)
+{
+    await using var scope = webApplication.Services.CreateAsyncScope();
+    await using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    if (dbContext.Database.IsRelational())
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+}

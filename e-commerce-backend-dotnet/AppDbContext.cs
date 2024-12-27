@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace e_commerce_backend_dotnet;
+namespace Ecommerce;
 
 public class AppDbContext : DbContext
 {
