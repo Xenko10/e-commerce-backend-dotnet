@@ -63,7 +63,20 @@ app.MapPost("/product", async (AppDbContext db, Product productDto) =>
 
 app.MapGet("/flashsalesproducts", (AppDbContext db) =>
 {
-    var flashSalesProducts = db.FlashSalesProducts.Include(fsp => fsp.Product).ToList();
+    var flashSalesProducts = db.FlashSalesProducts
+        .Include(fsp => fsp.Product)
+        .Select(fsp => new
+        {
+                fsp.Product.Id,
+                fsp.Product.Url,
+                fsp.Product.Alt,
+                fsp.Product.Header,
+                fsp.Product.Price,
+                fsp.Product.PriceAfterDiscount,
+                fsp.Product.Stars,
+                fsp.Product.Opinions
+        })
+        .ToList();
     return flashSalesProducts;
 });
 
