@@ -7,7 +7,7 @@ public class Product
     public required string Alt { get; init;}
     public required string Header { get; init;}
     public int Price { get; init;}
-    public int PriceAfterDiscount { get; init;}
+    public int? PriceAfterDiscount { get; init;}
     public double Stars { get; init;}
     public int Opinions { get; init;}
 }
