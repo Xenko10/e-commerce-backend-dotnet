@@ -2,7 +2,7 @@ namespace Ecommerce;
 
 public class FlashSalesProduct
 {
-    public int Id { get; set; }
-    public int ProductId { get; set; }
-    public Product Product { get; set; }
+    public int Id { get; init; }
+    public int ProductId { get; init; }
+    public required Product Product { get; init; }
 }
