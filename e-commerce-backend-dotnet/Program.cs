@@ -60,9 +60,9 @@ app.MapPost("/products", async (AppDbContext db, Product productDto, Cancellatio
     return Results.Created($"/product/{product.Id}", product);
 });
 
-app.MapGet("/flash-sales-products", (AppDbContext db) =>
+app.MapGet("/flash-sales-products", async (AppDbContext db, CancellationToken ct) =>
 {
-    var flashSalesProducts = db.FlashSalesProducts
+    var flashSalesProducts = await db.FlashSalesProducts
         .Include(fsp => fsp.Product)
         .AsSplitQuery()
         .Select(fsp => new
@@ -76,13 +76,13 @@ app.MapGet("/flash-sales-products", (AppDbContext db) =>
             fsp.Product.Stars,
             fsp.Product.Opinions
         })
-        .ToList();
+        .ToListAsync(ct);
     return flashSalesProducts;
 });
 
-app.MapPost("/flash-sales-products", async (AppDbContext db, int productId) =>
+app.MapPost("/flash-sales-products", async (AppDbContext db, int productId, CancellationToken ct) =>
 {
-    var product = await db.Products.FindAsync(productId);
+    var product = await db.Products.FindAsync(productId, ct);
     if (product == null)
     {
         return Results.NotFound("Product not found");
@@ -95,7 +95,7 @@ app.MapPost("/flash-sales-products", async (AppDbContext db, int productId) =>
     };
 
     db.FlashSalesProducts.Add(flashSalesProduct);
-    await db.SaveChangesAsync();
+    await db.SaveChangesAsync(ct);
     return Results.Created($"/flashsalesproducts/{flashSalesProduct.Id}", flashSalesProduct);
 });
 
