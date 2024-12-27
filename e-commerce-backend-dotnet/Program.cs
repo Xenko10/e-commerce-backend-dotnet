@@ -31,9 +31,9 @@ app.UseCors();
 
 app.MapGet("/", () => "Hello World!");
 
-app.MapGet("/product", (AppDbContext db) =>
+app.MapGet("/product", (AppDbContext db, int productId) =>
 {
-    var item = db.Products.FirstOrDefault(p => p.Id == 1);
+    var item = db.Products.FirstOrDefault(p => p.Id == productId);
     return item;
 });
 
