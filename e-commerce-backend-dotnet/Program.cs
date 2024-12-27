@@ -1,5 +1,5 @@
- using e_commerce_backend_dotnet;
  using Ecommerce;
+ using Microsoft.AspNetCore.Http.HttpResults;
  using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
@@ -10,15 +10,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
 
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(policyBuilder =>
-    {
-        policyBuilder.AllowAnyOrigin()
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
-});
+builder.Services.AddCors();
 
 var app = builder.Build();
 
@@ -28,15 +20,20 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-app.UseCors();
+app.UseCors(cors => cors.AllowAnyOrigin()
+    .AllowAnyHeader()
+    .AllowAnyMethod());
 
-app.MapGet("/", () => "Hello World!");
-
-app.MapGet("/product", async (AppDbContext db, int productId, CancellationToken ct) =>
+app.MapGet("/products/{productId:int}", async Task<Results<Ok<Product>, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
 {
     var item = await db.Products.FirstOrDefaultAsync(p => p.Id == productId, cancellationToken: ct);
-    return item;
-});
+    if (item is null)
+    {
+        return TypedResults.NotFound();
+    }
+
+    return TypedResults.Ok(item);
+}).RequireAuthorization();
 
 // TODO add pagination + pagination validation + add canceltion token
 app.MapGet("/products", (AppDbContext db) =>
