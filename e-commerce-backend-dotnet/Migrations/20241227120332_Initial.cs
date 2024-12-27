@@ -21,7 +21,7 @@ namespace Ecommerce.Migrations
                     Alt = table.Column<string>(type: "text", nullable: false),
                     Header = table.Column<string>(type: "text", nullable: false),
                     Price = table.Column<int>(type: "integer", nullable: false),
-                    PriceAfterDiscount = table.Column<int>(type: "integer", nullable: false),
+                    PriceAfterDiscount = table.Column<int>(type: "integer", nullable: true),
                     Stars = table.Column<double>(type: "double precision", nullable: false),
                     Opinions = table.Column<int>(type: "integer", nullable: false)
                 },

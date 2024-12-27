@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Ecommerce.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241227095406_Initial")]
+    [Migration("20241227120332_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -64,7 +64,7 @@ namespace Ecommerce.Migrations
                     b.Property<int>("Price")
                         .HasColumnType("integer");
 
-                    b.Property<int>("PriceAfterDiscount")
+                    b.Property<int?>("PriceAfterDiscount")
                         .HasColumnType("integer");
 
                     b.Property<double>("Stars")

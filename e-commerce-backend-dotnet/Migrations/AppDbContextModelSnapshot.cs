@@ -61,7 +61,7 @@ namespace Ecommerce.Migrations
                     b.Property<int>("Price")
                         .HasColumnType("integer");
 
-                    b.Property<int>("PriceAfterDiscount")
+                    b.Property<int?>("PriceAfterDiscount")
                         .HasColumnType("integer");
 
                     b.Property<double>("Stars")

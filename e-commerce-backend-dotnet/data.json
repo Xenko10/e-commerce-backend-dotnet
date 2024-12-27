@@ -1,0 +1,90 @@
+[{
+  "url": "gamepad.png",
+  "alt": "gamepad",
+  "header": "HAVIT HV-G92 Gamepad",
+  "price": 160,
+  "priceAfterDiscount": 120,
+  "stars": 4.5,
+  "opinions": 88
+},
+{
+"url": "keyboard.png",
+"alt": "keyboard",
+"header": "AK-900 Wired Keyboard",
+"price": 1160,
+"priceAfterDiscount": 920,
+"stars": 4,
+"opinions": 75
+},
+{
+"url": "monitor.png",
+"alt": "monitor",
+"header": "IPS LCD Gaming Monitor",
+"price": 400,
+"priceAfterDiscount": 240,
+"stars": 5,
+"opinions": 121
+},
+{
+"url": "chair.png",
+"alt": "chair",
+"header": "S-Series Comfort Chair",
+"price": 400,
+"priceAfterDiscount": 160,
+"stars": 3.5,
+"opinions": 99
+},
+{
+"url": "laptop.png",
+"alt": "laptop",
+"header": "ASUS FHD Gaming Laptop",
+"price": 700,
+"priceAfterDiscount": 525,
+"stars": 5,
+"opinions": 325
+},
+{
+"url": "camera.png",
+"alt": "camera",
+"header": "CANON EOS DSLR Camera",
+"price": 360,
+"priceAfterDiscount": 270,
+"stars": 4,
+"opinions": 95
+},
+{
+"url": "coat.png",
+"alt": "coat",
+"header": "The north coat",
+"price": 360,
+"priceAfterDiscount": 260,
+"stars": 5,
+"opinions": 65
+},
+{
+"url": "gucci-bag.png",
+"alt": "gucci duffle bag",
+"header": "Gucci duffle bag",
+"price": 1160,
+"priceAfterDiscount": 960,
+"stars": 4.5,
+"opinią": 94
+},
+  {
+"url": "cooler.png",
+"alt": "cpu cooler",
+"header": "RGB Liquid CPU Cooler",
+"price": 170,
+"priceAfterDiscount": 160,
+"stars": 4.5,
+"opinions": 23
+},
+{
+"url": "bookshelf.png",
+"alt": "bookshelf",
+"header": "Small Bookshelf",
+"price": 360,
+"priceAfterDiscount": null,
+"stars": 5,
+"opinions": 121
+}]
