@@ -53,7 +53,7 @@ app.MapGet("/products", async Task<Results<Ok<List<Product>>, NotFound>> (AppDbC
     return TypedResults.Ok(products);
 });
 
-app.MapPost("/products", async (AppDbContext db, Product productDto, CancellationToken ct) =>
+app.MapPost("/products", async Task<Results<Created<Product>, BadRequest>> (AppDbContext db, Product productDto, CancellationToken ct) =>
 {
     var product = new Product
     {
@@ -67,8 +67,12 @@ app.MapPost("/products", async (AppDbContext db, Product productDto, Cancellatio
     };
 
     db.Products.Add(product);
-    await db.SaveChangesAsync(ct);
-    return Results.Created($"/product/{product.Id}", product);
+    var result = await db.SaveChangesAsync(ct);
+    if (result == 0)
+    {
+        return TypedResults.BadRequest();
+    }
+    return TypedResults.Created($"/product/{product.Id}", product);
 });
 
 app.MapGet("/flash-sales-products", async (AppDbContext db, CancellationToken ct) =>
