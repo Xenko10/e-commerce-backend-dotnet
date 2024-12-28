@@ -75,24 +75,30 @@ app.MapPost("/products", async Task<Results<Created<Product>, BadRequest>> (AppD
     return TypedResults.Created($"/product/{product.Id}", product);
 });
 
-app.MapGet("/flash-sales-products", async (AppDbContext db, CancellationToken ct) =>
+app.MapGet("/flash-sales-products", async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
 {
     var flashSalesProducts = await db.FlashSalesProducts
         .Include(fsp => fsp.Product)
         .AsSplitQuery()
-        .Select(fsp => new
+        .Select(fsp => new Product
         {
-            fsp.Product.Id,
-            fsp.Product.Url,
-            fsp.Product.Alt,
-            fsp.Product.Header,
-            fsp.Product.Price,
-            fsp.Product.PriceAfterDiscount,
-            fsp.Product.Stars,
-            fsp.Product.Opinions
+            Id = fsp.Product.Id,
+            Url = fsp.Product.Url,
+            Alt = fsp.Product.Alt,
+            Header = fsp.Product.Header,
+            Price = fsp.Product.Price,
+            PriceAfterDiscount = fsp.Product.PriceAfterDiscount,
+            Stars = fsp.Product.Stars,
+            Opinions = fsp.Product.Opinions
         })
         .ToListAsync(ct);
-    return flashSalesProducts;
+
+    if (flashSalesProducts.Count == 0)
+    {
+        return TypedResults.NotFound();
+    }
+
+    return TypedResults.Ok(flashSalesProducts);
 });
 
 app.MapPost("/flash-sales-products/{productId:int}", async (AppDbContext db, int productId, CancellationToken ct) =>
