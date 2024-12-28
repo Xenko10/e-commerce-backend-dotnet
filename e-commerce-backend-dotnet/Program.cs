@@ -101,12 +101,12 @@ app.MapGet("/flash-sales-products", async Task<Results<Ok<List<Product>>, NotFou
     return TypedResults.Ok(flashSalesProducts);
 });
 
-app.MapPost("/flash-sales-products/{productId:int}", async (AppDbContext db, int productId, CancellationToken ct) =>
+app.MapPost("/flash-sales-products/{productId:int}", async Task<Results<Created<Product>, NotFound, BadRequest>> (AppDbContext db, int productId, CancellationToken ct) =>
 {
     var product = await db.Products.FindAsync(productId, ct);
     if (product == null)
     {
-        return Results.NotFound("Product not found");
+        return TypedResults.NotFound();
     }
 
     var flashSalesProduct = new FlashSalesProduct
@@ -116,8 +116,12 @@ app.MapPost("/flash-sales-products/{productId:int}", async (AppDbContext db, int
     };
 
     db.FlashSalesProducts.Add(flashSalesProduct);
-    await db.SaveChangesAsync(ct);
-    return Results.Created($"/flash-sales-products/{flashSalesProduct.Id}", flashSalesProduct);
+    var result = await db.SaveChangesAsync(ct);
+    if (result == 0)
+    {
+        return TypedResults.BadRequest();
+    }
+    return TypedResults.Created($"/flash-sales-products/{flashSalesProduct.Id}", product);
 });
 
 await Migrate(app);
