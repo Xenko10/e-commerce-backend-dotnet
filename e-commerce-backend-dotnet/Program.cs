@@ -3,7 +3,7 @@
  using Ecommerce;
  using Microsoft.AspNetCore.Http.HttpResults;
  using Microsoft.EntityFrameworkCore;
-using Scalar.AspNetCore;
+ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,10 +42,15 @@ app.MapGet("/products/{productId:int}", async Task<Results<Ok<Product>, NotFound
 });
 
 // TODO add pagination (with validation)
-app.MapGet("/products", async (AppDbContext db, CancellationToken ct) =>
+app.MapGet("/products", async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
 {
-    var items = await db.Products.ToListAsync(ct);
-    return items;
+    var products = await db.Products.ToListAsync(ct);
+    if (products.Count == 0)
+    {
+        return TypedResults.NotFound();
+    }
+
+    return TypedResults.Ok(products);
 });
 
 app.MapPost("/products", async (AppDbContext db, Product productDto, CancellationToken ct) =>
