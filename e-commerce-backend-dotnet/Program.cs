@@ -41,6 +41,19 @@ app.MapGet("/products/{productId:int}", async Task<Results<Ok<Product>, NotFound
     return TypedResults.Ok(item);
 });
 
+app.MapDelete("/products/{productId:int}", async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
+{
+    var product = await db.Products.FindAsync(productId, ct);
+    if (product is null)
+    {
+        return TypedResults.NotFound();
+    }
+
+    db.Products.Remove(product);
+    await db.SaveChangesAsync(ct);
+    return TypedResults.NoContent();
+});
+
 // TODO add pagination (with validation)
 app.MapGet("/products", async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
 {
