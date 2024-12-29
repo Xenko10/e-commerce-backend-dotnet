@@ -224,6 +224,74 @@ app.MapDelete("/wishlist/{productId:int}", async Task<Results<NoContent, NotFoun
     return TypedResults.NoContent();
 });
 
+app.MapGet("/cart", async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
+{
+    var cart = await db.Cart
+        .Include(fsp => fsp.Product)
+        .AsSplitQuery()
+        .Select(fsp => new Product
+        {
+            Id = fsp.Product.Id,
+            Url = fsp.Product.Url,
+            Alt = fsp.Product.Alt,
+            Header = fsp.Product.Header,
+            Price = fsp.Product.Price,
+            PriceAfterDiscount = fsp.Product.PriceAfterDiscount,
+            Stars = fsp.Product.Stars,
+            Opinions = fsp.Product.Opinions
+        })
+        .ToListAsync(ct);
+
+    if (cart.Count == 0)
+    {
+        return TypedResults.NotFound();
+    }
+
+    return TypedResults.Ok(cart);
+});
+
+app.MapPost("/cart/{productId:int}", async Task<Results<Created<Product>, NotFound, BadRequest>> (AppDbContext db, int productId, CancellationToken ct) =>
+{
+    var product = await db.Products.FindAsync(productId, ct);
+    if (product == null)
+    {
+        return TypedResults.NotFound();
+    }
+
+    var productInCart = await db.Cart.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
+    if (productInCart != null)
+    {
+        return TypedResults.BadRequest();
+    }
+    
+    var newCartProduct = new CartProduct
+    {
+        ProductId = productId,
+        Product = product
+    };
+
+    db.Cart.Add(newCartProduct);
+    var result = await db.SaveChangesAsync(ct);
+    if (result == 0)
+    {
+        return TypedResults.BadRequest();
+    }
+    return TypedResults.Created($"/cart/{newCartProduct.Id}", product);
+});
+
+app.MapDelete("/cart/{productId:int}", async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
+{
+    var cartProduct = await db.Cart.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
+    if (cartProduct is null)
+    {
+        return TypedResults.NotFound();
+    }
+
+    db.Cart.Remove(cartProduct);
+    await db.SaveChangesAsync(ct);
+    return TypedResults.NoContent();
+});
+
 await Migrate(app);
 
 app.Run();
