@@ -137,6 +137,19 @@ app.MapPost("/flash-sales-products/{productId:int}", async Task<Results<Created<
     return TypedResults.Created($"/flash-sales-products/{flashSalesProduct.Id}", product);
 });
 
+app.MapDelete("/flash-sales-products/{productId:int}", async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
+{
+    var flashSalesProduct = await db.FlashSalesProducts.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
+    if (flashSalesProduct is null)
+    {
+        return TypedResults.NotFound();
+    }
+
+    db.FlashSalesProducts.Remove(flashSalesProduct);
+    await db.SaveChangesAsync(ct);
+    return TypedResults.NoContent();
+});
+
 await Migrate(app);
 
 app.Run();

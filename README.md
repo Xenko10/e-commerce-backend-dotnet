@@ -1,3 +1,3 @@
 TODO:
 - [x] delete product endpoint
-- [ ] delete flash sales product endpoint
+- [x] delete flash sales product endpoint
