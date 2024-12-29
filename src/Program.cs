@@ -237,12 +237,12 @@ app.MapDelete("/wishlist/{productId:int}", async Task<Results<NoContent, NotFoun
     return TypedResults.NoContent();
 });
 
-app.MapGet("/cart", async Task<Ok<List<Product>>> (AppDbContext db, CancellationToken ct) =>
+app.MapGet("/cart", async Task<Ok<List<ProductWithQuantity>>> (AppDbContext db, CancellationToken ct) =>
 {
     var cart = await db.Cart
         .Include(fsp => fsp.Product)
         .AsSplitQuery()
-        .Select(fsp => new Product
+        .Select(fsp => new ProductWithQuantity
         {
             Id = fsp.Product.Id,
             Url = fsp.Product.Url,
@@ -251,14 +251,15 @@ app.MapGet("/cart", async Task<Ok<List<Product>>> (AppDbContext db, Cancellation
             Price = fsp.Product.Price,
             PriceAfterDiscount = fsp.Product.PriceAfterDiscount,
             Stars = fsp.Product.Stars,
-            Opinions = fsp.Product.Opinions
+            Opinions = fsp.Product.Opinions,
+            Quantity = fsp.Quantity
         })
         .ToListAsync(ct);
 
     return TypedResults.Ok(cart);
 });
 
-app.MapPost("/cart/{productId:int}", async Task<Results<Created<Product>, NotFound, BadRequest>> (AppDbContext db, int productId, CancellationToken ct) =>
+app.MapPost("/cart/{productId:int}", async Task<Results<Created<CartProduct>, NotFound, BadRequest>> (AppDbContext db, int productId, CancellationToken ct) =>
 {
     var product = await db.Products.FindAsync(productId, ct);
     if (product == null)
@@ -275,7 +276,8 @@ app.MapPost("/cart/{productId:int}", async Task<Results<Created<Product>, NotFou
     var newCartProduct = new CartProduct
     {
         ProductId = productId,
-        Product = product
+        Product = product,
+        Quantity = 1
     };
 
     db.Cart.Add(newCartProduct);
@@ -284,7 +286,20 @@ app.MapPost("/cart/{productId:int}", async Task<Results<Created<Product>, NotFou
     {
         return TypedResults.BadRequest();
     }
-    return TypedResults.Created($"/cart/{newCartProduct.Id}", product);
+    return TypedResults.Created($"/cart/{newCartProduct.ProductId}", newCartProduct);
+});
+
+app.MapPut("/cart/{productId:int}/quantity/{quantity:int}", async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, int quantity, CancellationToken ct) =>
+{
+    var cartProduct = await db.Cart.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
+    if (cartProduct is null)
+    {
+        return TypedResults.NotFound();
+    }
+
+    cartProduct.Quantity = quantity;
+    await db.SaveChangesAsync(ct);
+    return TypedResults.NoContent();
 });
 
 app.MapDelete("/cart/{productId:int}", async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>

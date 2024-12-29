@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Ecommerce.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241229110817_Initial")]
+    [Migration("20241229160813_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -33,6 +33,9 @@ namespace Ecommerce.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
