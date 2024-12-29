@@ -174,7 +174,7 @@ app.MapDelete("/flash-sales-products/{productId:int}", async Task<Results<NoCont
     return TypedResults.NoContent();
 });
 
-app.MapGet("/wishlist", async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
+app.MapGet("/wishlist", async Task<Ok<List<Product>>> (AppDbContext db, CancellationToken ct) =>
 {
     var wishlist = await db.Wishlist
         .Include(fsp => fsp.Product)
@@ -191,11 +191,6 @@ app.MapGet("/wishlist", async Task<Results<Ok<List<Product>>, NotFound>> (AppDbC
             Opinions = fsp.Product.Opinions
         })
         .ToListAsync(ct);
-
-    if (wishlist.Count == 0)
-    {
-        return TypedResults.NotFound();
-    }
 
     return TypedResults.Ok(wishlist);
 });
@@ -242,7 +237,7 @@ app.MapDelete("/wishlist/{productId:int}", async Task<Results<NoContent, NotFoun
     return TypedResults.NoContent();
 });
 
-app.MapGet("/cart", async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
+app.MapGet("/cart", async Task<Ok<List<Product>>> (AppDbContext db, CancellationToken ct) =>
 {
     var cart = await db.Cart
         .Include(fsp => fsp.Product)
@@ -259,11 +254,6 @@ app.MapGet("/cart", async Task<Results<Ok<List<Product>>, NotFound>> (AppDbConte
             Opinions = fsp.Product.Opinions
         })
         .ToListAsync(ct);
-
-    if (cart.Count == 0)
-    {
-        return TypedResults.NotFound();
-    }
 
     return TypedResults.Ok(cart);
 });
