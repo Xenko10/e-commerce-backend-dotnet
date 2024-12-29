@@ -122,6 +122,12 @@ app.MapPost("/flash-sales-products/{productId:int}", async Task<Results<Created<
         return TypedResults.NotFound();
     }
 
+    var productInFlashSalesProduct = await db.FlashSalesProducts.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
+    if (productInFlashSalesProduct != null)
+    {
+        return TypedResults.BadRequest();
+    }
+    
     var flashSalesProduct = new FlashSalesProduct
     {
         ProductId = productId,
