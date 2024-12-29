@@ -68,6 +68,23 @@ app.MapGet("/products", async Task<Results<Ok<List<Product>>, NotFound>> (AppDbC
 
 app.MapPost("/products", async Task<Results<Created<Product>, BadRequest>> (AppDbContext db, Product productDto, CancellationToken ct) =>
 {
+    // Required data validation
+    if (string.IsNullOrEmpty(productDto.Url) ||
+        string.IsNullOrEmpty(productDto.Alt) ||
+        string.IsNullOrEmpty(productDto.Header) ||
+        productDto.Price <= 0 ||
+        productDto.Stars <= 0 ||
+        productDto.Opinions <= 0)
+    {
+        return TypedResults.BadRequest();
+    }
+
+    // Optional data validation
+    if (productDto.PriceAfterDiscount < 0 || productDto.PriceAfterDiscount >= productDto.Price)
+    {
+        return TypedResults.BadRequest();
+    }
+     
     var product = new Product
     {
         Url = productDto.Url,
@@ -78,6 +95,7 @@ app.MapPost("/products", async Task<Results<Created<Product>, BadRequest>> (AppD
         Stars = productDto.Stars,
         Opinions = productDto.Opinions
     };
+    
 
     db.Products.Add(product);
     var result = await db.SaveChangesAsync(ct);
