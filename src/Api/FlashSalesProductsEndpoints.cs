@@ -1,14 +1,18 @@
+using Carter;
+
 using Ecommerce.Model;
+
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Api;
 
-public static class FlashSalesProductsEndpoints
+public sealed class FlashSalesProductsEndpoints : ICarterModule
 {
-    public static void MapFlashSalesProductsEndpoints(this IEndpointRouteBuilder routes)
+    public void AddRoutes(IEndpointRouteBuilder routes)
     {
-        routes.MapGet("/flash-sales-products",
+        var flashSalesProductsModule = routes.MapGroup("/flash-sales-products").WithTags("Flash Sales Products");
+        flashSalesProductsModule.MapGet("",
             async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
             {
                 var flashSalesProducts = await db.FlashSalesProducts
@@ -35,7 +39,7 @@ public static class FlashSalesProductsEndpoints
                 return TypedResults.Ok(flashSalesProducts);
             });
 
-        routes.MapPost("/flash-sales-products/{productId:int}",
+        flashSalesProductsModule.MapPost("/{productId:int}",
             async Task<Results<Created<Product>, NotFound, BadRequest>> (AppDbContext db, int productId,
                 CancellationToken ct) =>
             {
@@ -52,11 +56,7 @@ public static class FlashSalesProductsEndpoints
                     return TypedResults.BadRequest();
                 }
 
-                var flashSalesProduct = new FlashSalesProduct
-                {
-                    ProductId = productId,
-                    Product = product
-                };
+                var flashSalesProduct = new FlashSalesProduct { ProductId = productId, Product = product };
 
                 db.FlashSalesProducts.Add(flashSalesProduct);
                 var result = await db.SaveChangesAsync(ct);
@@ -65,10 +65,10 @@ public static class FlashSalesProductsEndpoints
                     return TypedResults.BadRequest();
                 }
 
-                return TypedResults.Created($"/flash-sales-products/{flashSalesProduct.Id}", product);
+                return TypedResults.Created($"/{flashSalesProduct.Id}", product);
             });
 
-        routes.MapDelete("/flash-sales-products/{productId:int}",
+        flashSalesProductsModule.MapDelete("/{productId:int}",
             async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
             {
                 var flashSalesProduct =
