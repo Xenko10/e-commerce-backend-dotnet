@@ -64,9 +64,14 @@ public sealed class CartEndpoints : ICarterModule
             });
 
         cartModule.MapPut("/{productId:int}/quantity/{quantity:int}",
-            async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, int quantity,
+            async Task<Results<NoContent, NotFound, BadRequest>> (AppDbContext db, int productId, int quantity,
                 CancellationToken ct) =>
             {
+                if (quantity < 1 || quantity > 10)
+                {
+                    return TypedResults.BadRequest();
+                }
+
                 var cartProduct = await db.Cart.Where(fsp => fsp.ProductId == productId)
                     .ExecuteUpdateAsync(x => x.SetProperty(p => p.Quantity, quantity), ct);
                 if (cartProduct is 0)
