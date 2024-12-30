@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 using Carter;
 
 using Ecommerce;
-using Ecommerce.Api;
 using Ecommerce.Model;
 
 using Microsoft.EntityFrameworkCore;
@@ -37,7 +36,6 @@ app.UseCors(cors => cors.AllowAnyOrigin()
     .AllowAnyHeader()
     .AllowAnyMethod());
 
-app.MapWishlistEndpoints();
 app.MapCarter();
 await Migrate(app);
 

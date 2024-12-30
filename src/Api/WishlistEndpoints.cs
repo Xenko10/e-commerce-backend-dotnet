@@ -1,14 +1,19 @@
+using Carter;
+
 using Ecommerce.Model;
+
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Api;
 
-public static class WishlistEndpoints
+public sealed class WishlistEndpoints : ICarterModule
 {
-    public static void MapWishlistEndpoints(this IEndpointRouteBuilder routes)
+    public void AddRoutes(IEndpointRouteBuilder routes)
     {
-        routes.MapGet("/wishlist", async Task<Ok<List<Product>>> (AppDbContext db, CancellationToken ct) =>
+        var wishlistModule = routes.MapGroup("/wishlist").WithTags("Wishlist");
+
+        wishlistModule.MapGet("", async Task<Ok<List<Product>>> (AppDbContext db, CancellationToken ct) =>
         {
             var wishlist = await db.Wishlist
                 .Include(fsp => fsp.Product)
@@ -28,7 +33,7 @@ public static class WishlistEndpoints
             return TypedResults.Ok(wishlist);
         });
 
-        routes.MapPost("/wishlist/{productId:int}",
+        wishlistModule.MapPost("/{productId:int}",
             async Task<Results<Created<Product>, NotFound, BadRequest>> (AppDbContext db, int productId,
                 CancellationToken ct) =>
             {
@@ -44,11 +49,7 @@ public static class WishlistEndpoints
                     return TypedResults.BadRequest();
                 }
 
-                var newWishlistProduct = new WishlistProduct
-                {
-                    ProductId = productId,
-                    Product = product
-                };
+                var newWishlistProduct = new WishlistProduct { ProductId = productId, Product = product };
 
                 db.Wishlist.Add(newWishlistProduct);
                 var result = await db.SaveChangesAsync(ct);
@@ -57,10 +58,10 @@ public static class WishlistEndpoints
                     return TypedResults.BadRequest();
                 }
 
-                return TypedResults.Created($"/wishlist/{newWishlistProduct.Id}", product);
+                return TypedResults.Created($"/{newWishlistProduct.Id}", product);
             });
 
-        routes.MapDelete("/wishlist/{productId:int}",
+        wishlistModule.MapDelete("/{productId:int}",
             async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
             {
                 var wishlistProduct = await db.Wishlist.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
