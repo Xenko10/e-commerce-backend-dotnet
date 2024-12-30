@@ -1,15 +1,19 @@
+using Carter;
+
 using Ecommerce.Dto;
 using Ecommerce.Model;
+
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Api;
 
-public static class CartEndpoints
+public sealed class CartEndpoints : ICarterModule
 {
-    public static void MapCartEndpoints(this IEndpointRouteBuilder routes)
+    public void AddRoutes(IEndpointRouteBuilder routes)
     {
-        routes.MapGet("/cart", async Task<Ok<List<ProductWithQuantityDto>>> (AppDbContext db, CancellationToken ct) =>
+        var cartModule = routes.MapGroup("/cart").WithTags("Cart");
+        cartModule.MapGet("", async Task<Ok<List<ProductWithQuantityDto>>> (AppDbContext db, CancellationToken ct) =>
         {
             var cart = await db.Cart
                 .Include(fsp => fsp.Product)
@@ -31,7 +35,7 @@ public static class CartEndpoints
             return TypedResults.Ok(cart);
         });
 
-        routes.MapPost("/cart/{productId:int}",
+        cartModule.MapPost("/{productId:int}",
             async Task<Results<Created<CartProduct>, NotFound, BadRequest>> (AppDbContext db, int productId,
                 CancellationToken ct) =>
             {
@@ -47,12 +51,7 @@ public static class CartEndpoints
                     return TypedResults.BadRequest();
                 }
 
-                var newCartProduct = new CartProduct
-                {
-                    ProductId = productId,
-                    Product = product,
-                    Quantity = 1
-                };
+                var newCartProduct = new CartProduct { ProductId = productId, Product = product, Quantity = 1 };
 
                 db.Cart.Add(newCartProduct);
                 var result = await db.SaveChangesAsync(ct);
@@ -64,32 +63,31 @@ public static class CartEndpoints
                 return TypedResults.Created($"/cart/{newCartProduct.ProductId}", newCartProduct);
             });
 
-        routes.MapPut("/cart/{productId:int}/quantity/{quantity:int}",
+        cartModule.MapPut("/{productId:int}/quantity/{quantity:int}",
             async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, int quantity,
                 CancellationToken ct) =>
             {
-                var cartProduct = await db.Cart.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
-                if (cartProduct is null)
+                var cartProduct = await db.Cart.Where(fsp => fsp.ProductId == productId)
+                    .ExecuteUpdateAsync(x => x.SetProperty(p => p.Quantity, quantity), ct);
+                if (cartProduct is 0)
                 {
                     return TypedResults.NotFound();
                 }
 
-                cartProduct.Quantity = quantity;
-                await db.SaveChangesAsync(ct);
                 return TypedResults.NoContent();
             });
 
-        routes.MapDelete("/cart/{productId:int}",
+        cartModule.MapDelete("/{productId:int}",
             async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
             {
-                var cartProduct = await db.Cart.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
-                if (cartProduct is null)
+                var cartProduct = await db.Cart.Where(fsp => fsp.ProductId == productId)
+                    .ExecuteDeleteAsync(cancellationToken: ct);
+
+                if (cartProduct == 0)
                 {
                     return TypedResults.NotFound();
                 }
 
-                db.Cart.Remove(cartProduct);
-                await db.SaveChangesAsync(ct);
                 return TypedResults.NoContent();
             });
     }

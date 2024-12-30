@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+using Carter;
+
 using Ecommerce;
 using Ecommerce.Api;
 using Ecommerce.Model;
@@ -21,6 +23,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 builder.Services.AddCors();
+builder.Services.AddCarter();
 
 var app = builder.Build();
 
@@ -37,8 +40,7 @@ app.UseCors(cors => cors.AllowAnyOrigin()
 app.MapProductsEndpoints();
 app.MapFlashSalesProductsEndpoints();
 app.MapWishlistEndpoints();
-app.MapCartEndpoints();
-
+app.MapCarter();
 await Migrate(app);
 
 app.Run();
