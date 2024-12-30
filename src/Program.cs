@@ -37,7 +37,6 @@ app.UseCors(cors => cors.AllowAnyOrigin()
     .AllowAnyHeader()
     .AllowAnyMethod());
 
-app.MapProductsEndpoints();
 app.MapWishlistEndpoints();
 app.MapCarter();
 await Migrate(app);

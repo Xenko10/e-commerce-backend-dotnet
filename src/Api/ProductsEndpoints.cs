@@ -1,14 +1,19 @@
+using Carter;
+
 using Ecommerce.Model;
+
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Api;
 
-public static class ProductsEndpoints
+public sealed class ProductsEndpoints : ICarterModule
 {
-    public static void MapProductsEndpoints(this IEndpointRouteBuilder routes)
+    public void AddRoutes(IEndpointRouteBuilder routes)
     {
-        routes.MapGet("/products/{productId:int}",
+        var productsModule = routes.MapGroup("/products").WithTags("Products");
+
+        productsModule.MapGet("/{productId:int}",
             async Task<Results<Ok<Product>, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
             {
                 var item = await db.Products.FirstOrDefaultAsync(p => p.Id == productId, cancellationToken: ct);
@@ -20,7 +25,7 @@ public static class ProductsEndpoints
                 return TypedResults.Ok(item);
             });
 
-        routes.MapDelete("/products/{productId:int}",
+        productsModule.MapDelete("/{productId:int}",
             async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
             {
                 var product = await db.Products.FindAsync(productId, ct);
@@ -35,7 +40,7 @@ public static class ProductsEndpoints
             });
 
         // TODO add pagination (with validation)
-        routes.MapGet("/products",
+        productsModule.MapGet("",
             async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
             {
                 var products = await db.Products.ToListAsync(ct);
@@ -47,7 +52,7 @@ public static class ProductsEndpoints
                 return TypedResults.Ok(products);
             });
 
-        routes.MapPost("/products",
+        productsModule.MapPost("",
             async Task<Results<Created<Product>, BadRequest>> (AppDbContext db, Product productDto,
                 CancellationToken ct) =>
             {
