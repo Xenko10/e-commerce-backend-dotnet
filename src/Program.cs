@@ -1,6 +1,7 @@
  using System.Text.Json;
  using System.Text.Json.Serialization;
  using Ecommerce;
+ using Ecommerce.Api;
  using Ecommerce.Dto;
  using Ecommerce.Model;
  using Microsoft.AspNetCore.Http.HttpResults;
@@ -32,149 +33,8 @@ app.UseCors(cors => cors.AllowAnyOrigin()
     .AllowAnyHeader()
     .AllowAnyMethod());
 
-app.MapGet("/products/{productId:int}", async Task<Results<Ok<Product>, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
-{
-    var item = await db.Products.FirstOrDefaultAsync(p => p.Id == productId, cancellationToken: ct);
-    if (item is null)
-    {
-        return TypedResults.NotFound();
-    }
-
-    return TypedResults.Ok(item);
-});
-
-app.MapDelete("/products/{productId:int}", async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
-{
-    var product = await db.Products.FindAsync(productId, ct);
-    if (product is null)
-    {
-        return TypedResults.NotFound();
-    }
-
-    db.Products.Remove(product);
-    await db.SaveChangesAsync(ct);
-    return TypedResults.NoContent();
-});
-
-// TODO add pagination (with validation)
-app.MapGet("/products", async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
-{
-    var products = await db.Products.ToListAsync(ct);
-    if (products.Count == 0)
-    {
-        return TypedResults.NotFound();
-    }
-
-    return TypedResults.Ok(products);
-});
-
-app.MapPost("/products", async Task<Results<Created<Product>, BadRequest>> (AppDbContext db, Product productDto, CancellationToken ct) =>
-{
-    // Required data validation
-    if (string.IsNullOrEmpty(productDto.Url) ||
-        string.IsNullOrEmpty(productDto.Alt) ||
-        string.IsNullOrEmpty(productDto.Header) ||
-        productDto.Price <= 0 ||
-        productDto.Stars <= 0 ||
-        productDto.Opinions <= 0)
-    {
-        return TypedResults.BadRequest();
-    }
-
-    // Optional data validation
-    if (productDto.PriceAfterDiscount < 0 || productDto.PriceAfterDiscount >= productDto.Price)
-    {
-        return TypedResults.BadRequest();
-    }
-     
-    var product = new Product
-    {
-        Url = productDto.Url,
-        Alt = productDto.Alt,
-        Header = productDto.Header,
-        Price = productDto.Price,
-        PriceAfterDiscount = productDto.PriceAfterDiscount,
-        Stars = productDto.Stars,
-        Opinions = productDto.Opinions
-    };
-    
-
-    db.Products.Add(product);
-    var result = await db.SaveChangesAsync(ct);
-    if (result == 0)
-    {
-        return TypedResults.BadRequest();
-    }
-    return TypedResults.Created($"/product/{product.Id}", product);
-});
-
-app.MapGet("/flash-sales-products", async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
-{
-    var flashSalesProducts = await db.FlashSalesProducts
-        .Include(fsp => fsp.Product)
-        .AsSplitQuery()
-        .Select(fsp => new Product
-        {
-            Id = fsp.Product.Id,
-            Url = fsp.Product.Url,
-            Alt = fsp.Product.Alt,
-            Header = fsp.Product.Header,
-            Price = fsp.Product.Price,
-            PriceAfterDiscount = fsp.Product.PriceAfterDiscount,
-            Stars = fsp.Product.Stars,
-            Opinions = fsp.Product.Opinions
-        })
-        .ToListAsync(ct);
-
-    if (flashSalesProducts.Count == 0)
-    {
-        return TypedResults.NotFound();
-    }
-
-    return TypedResults.Ok(flashSalesProducts);
-});
-
-app.MapPost("/flash-sales-products/{productId:int}", async Task<Results<Created<Product>, NotFound, BadRequest>> (AppDbContext db, int productId, CancellationToken ct) =>
-{
-    var product = await db.Products.FindAsync(productId, ct);
-    if (product == null)
-    {
-        return TypedResults.NotFound();
-    }
-
-    var productInFlashSalesProduct = await db.FlashSalesProducts.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
-    if (productInFlashSalesProduct != null)
-    {
-        return TypedResults.BadRequest();
-    }
-    
-    var flashSalesProduct = new FlashSalesProduct
-    {
-        ProductId = productId,
-        Product = product
-    };
-
-    db.FlashSalesProducts.Add(flashSalesProduct);
-    var result = await db.SaveChangesAsync(ct);
-    if (result == 0)
-    {
-        return TypedResults.BadRequest();
-    }
-    return TypedResults.Created($"/flash-sales-products/{flashSalesProduct.Id}", product);
-});
-
-app.MapDelete("/flash-sales-products/{productId:int}", async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
-{
-    var flashSalesProduct = await db.FlashSalesProducts.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
-    if (flashSalesProduct is null)
-    {
-        return TypedResults.NotFound();
-    }
-
-    db.FlashSalesProducts.Remove(flashSalesProduct);
-    await db.SaveChangesAsync(ct);
-    return TypedResults.NoContent();
-});
+app.MapProductsEndpoints();
+app.MapFlashSalesProductsEndpoints();
 
 app.MapGet("/wishlist", async Task<Ok<List<Product>>> (AppDbContext db, CancellationToken ct) =>
 {
