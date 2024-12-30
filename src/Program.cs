@@ -1,9 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using Carter;
-
 using Ecommerce;
+using Ecommerce.Extensions;
 using Ecommerce.Model;
 
 using Microsoft.EntityFrameworkCore;
@@ -15,14 +14,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection")));
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
 builder.Services.AddCors();
-builder.Services.AddCarter();
+builder.AddEndpoints();
 
 var app = builder.Build();
 
@@ -36,7 +35,8 @@ app.UseCors(cors => cors.AllowAnyOrigin()
     .AllowAnyHeader()
     .AllowAnyMethod());
 
-app.MapCarter();
+app.MapEndpoints();
+
 await Migrate(app);
 
 app.Run();

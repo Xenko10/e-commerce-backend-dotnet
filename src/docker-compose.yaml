@@ -1,12 +1,11 @@
 services:
   db:
-    image: postgres
-    restart: always
-    shm_size: 128mb
+    image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
-      POSTGRES_PASSWORD: 12345678
+      - MSSQL_SA_PASSWORD=Pass@word
+      - ACCEPT_EULA=Y
     ports:
-      - "5432:5432"
+      - "1433:1433"
 
   adminer:
     image: adminer

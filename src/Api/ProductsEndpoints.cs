@@ -1,5 +1,3 @@
-using Carter;
-
 using Ecommerce.Model;
 
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -7,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Api;
 
-public sealed class ProductsEndpoints : ICarterModule
+public sealed class ProductsEndpoints : IEndpoint
 {
     public void AddRoutes(IEndpointRouteBuilder routes)
     {

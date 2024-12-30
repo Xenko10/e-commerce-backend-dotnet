@@ -1,5 +1,3 @@
-using Carter;
-
 using Ecommerce.Dto;
 using Ecommerce.Model;
 
@@ -8,7 +6,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Api;
 
-public sealed class CartEndpoints : ICarterModule
+public interface IEndpoint
+{
+    void AddRoutes(IEndpointRouteBuilder routes);
+}
+
+public sealed class CartEndpoints : IEndpoint
 {
     public void AddRoutes(IEndpointRouteBuilder routes)
     {
