@@ -1,4 +1,4 @@
-namespace Ecommerce;
+namespace Ecommerce.Model;
 
 public class CartProduct
 {
@@ -9,8 +9,3 @@ public class CartProduct
 
 }
 
-public class ProductWithQuantity : Product
-{
-    public new int Id { get; init; }
-    public int Quantity { get; set; }
-}

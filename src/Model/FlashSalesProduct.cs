@@ -1,6 +1,6 @@
-namespace Ecommerce;
+namespace Ecommerce.Model;
 
-public class WishlistProduct
+public class FlashSalesProduct
 {
     public int Id { get; init; }
     public int ProductId { get; init; }

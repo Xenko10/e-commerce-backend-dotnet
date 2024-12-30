@@ -1,4 +1,4 @@
-﻿namespace Ecommerce;
+﻿namespace Ecommerce.Model;
 
 public class Product
 {

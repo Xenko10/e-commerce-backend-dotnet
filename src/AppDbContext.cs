@@ -1,3 +1,4 @@
+using Ecommerce.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce;

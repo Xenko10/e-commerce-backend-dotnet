@@ -1,6 +1,8 @@
  using System.Text.Json;
  using System.Text.Json.Serialization;
  using Ecommerce;
+ using Ecommerce.Dto;
+ using Ecommerce.Model;
  using Microsoft.AspNetCore.Http.HttpResults;
  using Microsoft.EntityFrameworkCore;
  using Scalar.AspNetCore;
@@ -237,12 +239,12 @@ app.MapDelete("/wishlist/{productId:int}", async Task<Results<NoContent, NotFoun
     return TypedResults.NoContent();
 });
 
-app.MapGet("/cart", async Task<Ok<List<ProductWithQuantity>>> (AppDbContext db, CancellationToken ct) =>
+app.MapGet("/cart", async Task<Ok<List<ProductWithQuantityDto>>> (AppDbContext db, CancellationToken ct) =>
 {
     var cart = await db.Cart
         .Include(fsp => fsp.Product)
         .AsSplitQuery()
-        .Select(fsp => new ProductWithQuantity
+        .Select(fsp => new ProductWithQuantityDto
         {
             Id = fsp.Product.Id,
             Url = fsp.Product.Url,
