@@ -31,61 +31,66 @@ public static class CartEndpoints
             return TypedResults.Ok(cart);
         });
 
-        routes.MapPost("/cart/{productId:int}", async Task<Results<Created<CartProduct>, NotFound, BadRequest>> (AppDbContext db, int productId, CancellationToken ct) =>
-        {
-            var product = await db.Products.FindAsync(productId, ct);
-            if (product == null)
+        routes.MapPost("/cart/{productId:int}",
+            async Task<Results<Created<CartProduct>, NotFound, BadRequest>> (AppDbContext db, int productId,
+                CancellationToken ct) =>
             {
-                return TypedResults.NotFound();
-            }
+                var product = await db.Products.FindAsync(productId, ct);
+                if (product == null)
+                {
+                    return TypedResults.NotFound();
+                }
 
-            var productInCart = await db.Cart.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
-            if (productInCart != null)
+                var productInCart = await db.Cart.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
+                if (productInCart != null)
+                {
+                    return TypedResults.BadRequest();
+                }
+
+                var newCartProduct = new CartProduct
+                {
+                    ProductId = productId,
+                    Product = product,
+                    Quantity = 1
+                };
+
+                db.Cart.Add(newCartProduct);
+                var result = await db.SaveChangesAsync(ct);
+                if (result == 0)
+                {
+                    return TypedResults.BadRequest();
+                }
+
+                return TypedResults.Created($"/cart/{newCartProduct.ProductId}", newCartProduct);
+            });
+
+        routes.MapPut("/cart/{productId:int}/quantity/{quantity:int}",
+            async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, int quantity,
+                CancellationToken ct) =>
             {
-                return TypedResults.BadRequest();
-            }
-            
-            var newCartProduct = new CartProduct
+                var cartProduct = await db.Cart.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
+                if (cartProduct is null)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                cartProduct.Quantity = quantity;
+                await db.SaveChangesAsync(ct);
+                return TypedResults.NoContent();
+            });
+
+        routes.MapDelete("/cart/{productId:int}",
+            async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
             {
-                ProductId = productId,
-                Product = product,
-                Quantity = 1
-            };
+                var cartProduct = await db.Cart.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
+                if (cartProduct is null)
+                {
+                    return TypedResults.NotFound();
+                }
 
-            db.Cart.Add(newCartProduct);
-            var result = await db.SaveChangesAsync(ct);
-            if (result == 0)
-            {
-                return TypedResults.BadRequest();
-            }
-            return TypedResults.Created($"/cart/{newCartProduct.ProductId}", newCartProduct);
-        });
-
-        routes.MapPut("/cart/{productId:int}/quantity/{quantity:int}", async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, int quantity, CancellationToken ct) =>
-        {
-            var cartProduct = await db.Cart.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
-            if (cartProduct is null)
-            {
-                return TypedResults.NotFound();
-            }
-
-            cartProduct.Quantity = quantity;
-            await db.SaveChangesAsync(ct);
-            return TypedResults.NoContent();
-        });
-
-        routes.MapDelete("/cart/{productId:int}", async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
-        {
-            var cartProduct = await db.Cart.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
-            if (cartProduct is null)
-            {
-                return TypedResults.NotFound();
-            }
-
-            db.Cart.Remove(cartProduct);
-            await db.SaveChangesAsync(ct);
-            return TypedResults.NoContent();
-        });
+                db.Cart.Remove(cartProduct);
+                await db.SaveChangesAsync(ct);
+                return TypedResults.NoContent();
+            });
     }
-
 }

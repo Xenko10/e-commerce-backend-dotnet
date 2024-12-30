@@ -1,6 +1,6 @@
 namespace Ecommerce.Dto;
 
-public class ProductWithQuantityDto 
+public class ProductWithQuantityDto
 {
     public int Id { get; init; }
     public required string Url { get; init; }

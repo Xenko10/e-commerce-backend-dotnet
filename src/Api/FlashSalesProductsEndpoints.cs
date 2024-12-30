@@ -8,8 +8,9 @@ public static class FlashSalesProductsEndpoints
 {
     public static void MapFlashSalesProductsEndpoints(this IEndpointRouteBuilder routes)
     {
-        routes.MapGet("/flash-sales-products", async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
-        {
+        routes.MapGet("/flash-sales-products",
+            async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
+            {
                 var flashSalesProducts = await db.FlashSalesProducts
                     .Include(fsp => fsp.Product)
                     .AsSplitQuery()

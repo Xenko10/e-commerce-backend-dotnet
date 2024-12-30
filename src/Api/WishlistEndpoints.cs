@@ -25,50 +25,53 @@ public static class WishlistEndpoints
                     Opinions = fsp.Product.Opinions
                 })
                 .ToListAsync(ct);
-        
             return TypedResults.Ok(wishlist);
         });
-        
-        routes.MapPost("/wishlist/{productId:int}", async Task<Results<Created<Product>, NotFound, BadRequest>> (AppDbContext db, int productId, CancellationToken ct) =>
-        {
-            var product = await db.Products.FindAsync(productId, ct);
-            if (product == null)
+
+        routes.MapPost("/wishlist/{productId:int}",
+            async Task<Results<Created<Product>, NotFound, BadRequest>> (AppDbContext db, int productId,
+                CancellationToken ct) =>
             {
-                return TypedResults.NotFound();
-            }
-        
-            var productInWishlist = await db.Wishlist.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
-            if (productInWishlist != null)
+                var product = await db.Products.FindAsync(productId, ct);
+                if (product == null)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                var productInWishlist = await db.Wishlist.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
+                if (productInWishlist != null)
+                {
+                    return TypedResults.BadRequest();
+                }
+
+                var newWishlistProduct = new WishlistProduct
+                {
+                    ProductId = productId,
+                    Product = product
+                };
+
+                db.Wishlist.Add(newWishlistProduct);
+                var result = await db.SaveChangesAsync(ct);
+                if (result == 0)
+                {
+                    return TypedResults.BadRequest();
+                }
+
+                return TypedResults.Created($"/wishlist/{newWishlistProduct.Id}", product);
+            });
+
+        routes.MapDelete("/wishlist/{productId:int}",
+            async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
             {
-                return TypedResults.BadRequest();
-            }
-            
-            var newWishlistProduct = new WishlistProduct
-            {
-                ProductId = productId,
-                Product = product
-            };
-        
-            db.Wishlist.Add(newWishlistProduct);
-            var result = await db.SaveChangesAsync(ct);
-            if (result == 0)
-            {
-                return TypedResults.BadRequest();
-            }
-            return TypedResults.Created($"/wishlist/{newWishlistProduct.Id}", product);
-        });
-        
-        routes.MapDelete("/wishlist/{productId:int}", async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
-        {
-            var wishlistProduct = await db.Wishlist.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
-            if (wishlistProduct is null)
-            {
-                return TypedResults.NotFound();
-            }
-        
-            db.Wishlist.Remove(wishlistProduct);
-            await db.SaveChangesAsync(ct);
-            return TypedResults.NoContent();
-        });
+                var wishlistProduct = await db.Wishlist.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);
+                if (wishlistProduct is null)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                db.Wishlist.Remove(wishlistProduct);
+                await db.SaveChangesAsync(ct);
+                return TypedResults.NoContent();
+            });
     }
 }
