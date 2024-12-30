@@ -6,11 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Api;
 
-public interface IEndpoint
-{
-    void AddRoutes(IEndpointRouteBuilder routes);
-}
-
 public sealed class CartEndpoints : IEndpoint
 {
     public void AddRoutes(IEndpointRouteBuilder routes)
