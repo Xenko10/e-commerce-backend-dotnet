@@ -1,11 +1,12 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using Ecommerce;
 using Ecommerce.Extensions;
 using Ecommerce.Model;
-
-using Microsoft.EntityFrameworkCore;
 
 using Scalar.AspNetCore;
 
@@ -20,6 +21,22 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 6;
+});
+
+builder.Services.AddAuthorization();
+builder.Services.AddControllers();
+
 builder.Services.AddCors();
 builder.AddEndpoints();
 
@@ -30,6 +47,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
 
 app.UseCors(cors => cors.AllowAnyOrigin()
     .AllowAnyHeader()

@@ -1,14 +1,15 @@
 using Ecommerce.Model;
+
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce;
 
-public class AppDbContext : DbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<IdentityUser>(options)
 {
     public DbSet<Product> Products { get; set; }
     public DbSet<FlashSalesProduct> FlashSalesProducts { get; set; }
-    public DbSet<WishlistProduct>Wishlist { get; set; }
-    public DbSet<CartProduct> Cart {get; set; }
-
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+    public DbSet<WishlistProduct> Wishlist { get; set; }
+    public DbSet<CartProduct> Cart { get; set; }
 }
