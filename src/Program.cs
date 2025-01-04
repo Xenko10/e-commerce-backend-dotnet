@@ -43,14 +43,16 @@ builder.Services.AddAuthentication(options =>
     })
     .AddJwtBearer(options =>
     {
+        var domain = Environment.GetEnvironmentVariable("DOMAIN") ?? throw new InvalidOperationException(
+            "DOMAIN environment variable is not set");
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = "http://localhost:3000/",
-            ValidAudience = "http://localhost:3000/",
+            ValidIssuer = domain,
+            ValidAudience = domain,
             IssuerSigningKey = new SymmetricSecurityKey(key)
         };
     });

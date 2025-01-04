@@ -67,14 +67,16 @@ public sealed class AccountEndpoints : IEndpoint
         var key = Encoding.ASCII.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET") ??
                                           throw new InvalidOperationException(
                                               "JWT_SECRET environment variable is not set"));
+        var domain = Environment.GetEnvironmentVariable("DOMAIN") ?? throw new InvalidOperationException(
+            "DOMAIN environment variable is not set");
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, email) }),
             Expires = DateTime.UtcNow.AddDays(7),
             SigningCredentials =
                 new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-            Issuer = "http://localhost:3000/",
-            Audience = "http://localhost:3000/"
+            Issuer = domain,
+            Audience = domain
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
