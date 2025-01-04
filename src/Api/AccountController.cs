@@ -17,9 +17,11 @@ public sealed class AccountEndpoints : IEndpoint
             async Task<Results<Ok, BadRequest<List<string>>>> (UserManager<IdentityUser> userManager,
                 RegisterDto model) =>
             {
-                if (!Validator.TryValidateObject(model, new ValidationContext(model), null, true))
+                var validationResults = new List<ValidationResult>();
+                if (!Validator.TryValidateObject(model, new ValidationContext(model), validationResults, true))
                 {
-                    return TypedResults.BadRequest(new List<string> { "Invalid model state" });
+                    var validationErrors = validationResults.Select(vr => vr.ErrorMessage ?? "Unknown error").ToList();
+                    return TypedResults.BadRequest(validationErrors);
                 }
 
                 var user = new IdentityUser { UserName = model.Email, Email = model.Email };
@@ -30,8 +32,27 @@ public sealed class AccountEndpoints : IEndpoint
                     return TypedResults.Ok();
                 }
 
-                var errors = result.Errors.Select(e => e.Description).ToList();
-                return TypedResults.BadRequest(errors);
+                var creationErrors = result.Errors.Select(e => e.Description).ToList();
+                return TypedResults.BadRequest(creationErrors);
+            });
+
+        accountModule.MapPost("/login",
+            async Task<Results<Ok, UnauthorizedHttpResult>> (SignInManager<IdentityUser> signInManager,
+                LoginDto model) =>
+            {
+                if (!Validator.TryValidateObject(model, new ValidationContext(model), null, true))
+                {
+                    return TypedResults.Unauthorized();
+                }
+
+                var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
+
+                if (result.Succeeded)
+                {
+                    return TypedResults.Ok();
+                }
+
+                return TypedResults.Unauthorized();
             });
     }
 }
