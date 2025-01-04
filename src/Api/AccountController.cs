@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 using Ecommerce.Dto;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Ecommerce.Api;
 
@@ -37,7 +41,7 @@ public sealed class AccountEndpoints : IEndpoint
             });
 
         accountModule.MapPost("/login",
-            async Task<Results<Ok, UnauthorizedHttpResult>> (SignInManager<IdentityUser> signInManager,
+            async Task<Results<Ok<string>, UnauthorizedHttpResult>> (SignInManager<IdentityUser> signInManager,
                 LoginDto model) =>
             {
                 if (!Validator.TryValidateObject(model, new ValidationContext(model), null, true))
@@ -49,10 +53,30 @@ public sealed class AccountEndpoints : IEndpoint
 
                 if (result.Succeeded)
                 {
-                    return TypedResults.Ok();
+                    var token = GenerateJwtToken(model.Email);
+                    return TypedResults.Ok(token);
                 }
 
                 return TypedResults.Unauthorized();
             });
+    }
+
+    private string GenerateJwtToken(string email)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET") ??
+                                          throw new InvalidOperationException(
+                                              "JWT_SECRET environment variable is not set"));
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, email) }),
+            Expires = DateTime.UtcNow.AddDays(7),
+            SigningCredentials =
+                new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+            Issuer = "http://localhost:3000/",
+            Audience = "http://localhost:3000/"
+        };
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
     }
 }

@@ -1,16 +1,25 @@
+using System.Text;
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+using DotNetEnv;
+
 using Ecommerce;
 using Ecommerce.Extensions;
 using Ecommerce.Model;
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Env.Load();
 
 builder.Services.AddOpenApi();
 
@@ -20,6 +29,31 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+
+var key = Encoding.ASCII.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET") ??
+                                  throw new InvalidOperationException("JWT_SECRET environment variable is not set"));
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = "http://localhost:3000/",
+            ValidAudience = "http://localhost:3000/",
+            IssuerSigningKey = new SymmetricSecurityKey(key)
+        };
+    });
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
@@ -35,8 +69,6 @@ builder.Services.Configure<IdentityOptions>(options =>
 });
 
 builder.Services.AddAuthorization();
-builder.Services.AddControllers();
-
 builder.Services.AddCors();
 builder.AddEndpoints();
 
