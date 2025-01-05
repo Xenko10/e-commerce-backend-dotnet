@@ -1,5 +1,3 @@
-using System.Text;
-
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,9 +9,6 @@ using DotNetEnv;
 using Ecommerce;
 using Ecommerce.Extensions;
 using Ecommerce.Model;
-
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 
 using Scalar.AspNetCore;
 
@@ -32,30 +27,6 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
-var key = Encoding.ASCII.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET") ??
-                                  throw new InvalidOperationException("JWT_SECRET environment variable is not set"));
-
-builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
-        var domain = Environment.GetEnvironmentVariable("DOMAIN") ?? throw new InvalidOperationException(
-            "DOMAIN environment variable is not set");
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = domain,
-            ValidAudience = domain,
-            IssuerSigningKey = new SymmetricSecurityKey(key)
-        };
-    });
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()

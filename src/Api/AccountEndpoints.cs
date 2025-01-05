@@ -1,13 +1,9 @@
 using System.ComponentModel.DataAnnotations;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 using Ecommerce.Dto;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Ecommerce.Api;
 
@@ -41,8 +37,9 @@ public sealed class AccountEndpoints : IEndpoint
             });
 
         accountModule.MapPost("/login",
-            async Task<Results<Ok<string>, UnauthorizedHttpResult>> (SignInManager<IdentityUser> signInManager,
-                LoginDto model) =>
+            async Task<Results<Ok<LoginResponseDto>, UnauthorizedHttpResult>> (
+                SignInManager<IdentityUser> signInManager,
+                UserManager<IdentityUser> userManager, LoginDto model) =>
             {
                 if (!Validator.TryValidateObject(model, new ValidationContext(model), null, true))
                 {
@@ -53,32 +50,12 @@ public sealed class AccountEndpoints : IEndpoint
 
                 if (result.Succeeded)
                 {
-                    var token = GenerateJwtToken(model.Email);
-                    return TypedResults.Ok(token);
+                    var user = await userManager.FindByEmailAsync(model.Email);
+                    var response = new LoginResponseDto { UserId = user.Id, Message = "Login successful" };
+                    return TypedResults.Ok(response);
                 }
 
                 return TypedResults.Unauthorized();
             });
-    }
-
-    private string GenerateJwtToken(string email)
-    {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET") ??
-                                          throw new InvalidOperationException(
-                                              "JWT_SECRET environment variable is not set"));
-        var domain = Environment.GetEnvironmentVariable("DOMAIN") ?? throw new InvalidOperationException(
-            "DOMAIN environment variable is not set");
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, email) }),
-            Expires = DateTime.UtcNow.AddDays(7),
-            SigningCredentials =
-                new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-            Issuer = domain,
-            Audience = domain
-        };
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
     }
 }
