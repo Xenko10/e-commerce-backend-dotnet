@@ -1,3 +1,4 @@
+using Ecommerce.Dto;
 using Ecommerce.Model;
 
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -38,7 +39,7 @@ public sealed class ProductsEndpoints : IEndpoint
             });
 
         productsModule.MapGet("",
-            async Task<Results<Ok<List<Product>>, BadRequest, NotFound>> (AppDbContext db, CancellationToken ct,
+            async Task<Results<Ok<PagedResult<Product>>, BadRequest, NotFound>> (AppDbContext db, CancellationToken ct,
                 int page = 1, int pageSize = 8) =>
             {
                 if (page <= 0 || pageSize <= 0)
@@ -64,7 +65,9 @@ public sealed class ProductsEndpoints : IEndpoint
                     return TypedResults.NotFound();
                 }
 
-                return TypedResults.Ok(products);
+                var result = new PagedResult<Product> { Items = products, TotalCount = totalProducts };
+
+                return TypedResults.Ok(result);
             });
 
         productsModule.MapPost("",
