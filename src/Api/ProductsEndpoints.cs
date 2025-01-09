@@ -39,7 +39,7 @@ public sealed class ProductsEndpoints : IEndpoint
 
         productsModule.MapGet("",
             async Task<Results<Ok<List<Product>>, BadRequest, NotFound>> (AppDbContext db, CancellationToken ct,
-                int page = 1, int pageSize = 10) =>
+                int page = 1, int pageSize = 8) =>
             {
                 if (page <= 0 || pageSize <= 0)
                 {
