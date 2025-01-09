@@ -37,11 +37,28 @@ public sealed class ProductsEndpoints : IEndpoint
                 return TypedResults.NoContent();
             });
 
-        // TODO add pagination (with validation)
         productsModule.MapGet("",
-            async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
+            async Task<Results<Ok<List<Product>>, BadRequest, NotFound>> (AppDbContext db, CancellationToken ct,
+                int page = 1, int pageSize = 10) =>
             {
-                var products = await db.Products.ToListAsync(ct);
+                if (page <= 0 || pageSize <= 0)
+                {
+                    return TypedResults.BadRequest();
+                }
+
+                var totalProducts = await db.Products.CountAsync(ct);
+                var totalPages = (int)Math.Ceiling(totalProducts / (double)pageSize);
+
+                if (page > totalPages)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                var products = await db.Products
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync(ct);
+
                 if (products.Count == 0)
                 {
                     return TypedResults.NotFound();
