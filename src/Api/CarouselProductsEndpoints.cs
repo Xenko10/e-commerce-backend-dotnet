@@ -13,7 +13,7 @@ public sealed class CarouselProductsEndpoints : IEndpoint
         carouselProductsModule.MapGet("",
             async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
             {
-                var flashSalesProducts = await db.CarouselProducts
+                var flashSalesProducts = await db.CarouselProducts.AsNoTracking()
                     .Include(fsp => fsp.Product)
                     .AsSplitQuery()
                     .Select(fsp => new Product
@@ -41,7 +41,7 @@ public sealed class CarouselProductsEndpoints : IEndpoint
         carouselProductsModule.MapGet("/flash-sales",
             async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
             {
-                var flashSalesProducts = await db.CarouselProducts
+                var flashSalesProducts = await db.CarouselProducts.AsNoTracking()
                     .Include(fsp => fsp.Product)
                     .AsSplitQuery()
                     .Where(fsp => fsp.IsFlashSalesProduct)
@@ -69,7 +69,7 @@ public sealed class CarouselProductsEndpoints : IEndpoint
         carouselProductsModule.MapGet("/bestsellers",
             async Task<Results<Ok<List<Product>>, NotFound>> (AppDbContext db, CancellationToken ct) =>
             {
-                var bestsellerProducts = await db.CarouselProducts
+                var bestsellerProducts = await db.CarouselProducts.AsNoTracking()
                     .Include(fsp => fsp.Product)
                     .AsSplitQuery()
                     .Where(fsp => fsp.IsBestsellersProduct)
