@@ -25,6 +25,20 @@ public sealed class ProductsEndpoints : IEndpoint
 
                 return TypedResults.Ok(item);
             });
+        
+        productsModule.MapDelete("/{productId:int}",
+            async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
+            {
+                var product = await db.Products.FindAsync(productId, ct);
+                if (product is null)
+                {
+                    return TypedResults.NotFound();
+                }
+
+                db.Products.Remove(product);
+                await db.SaveChangesAsync(ct);
+                return TypedResults.NoContent();
+            });
 
         productsModule.MapGet("",
             async Task<Results<Ok<PagedResult<Product>>, BadRequest, NotFound>> (AppDbContext db, CancellationToken ct,
