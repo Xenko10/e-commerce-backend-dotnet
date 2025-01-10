@@ -13,7 +13,7 @@ public sealed class WishlistEndpoints : IEndpoint
 
         wishlistModule.MapGet("", async Task<Ok<List<Product>>> (AppDbContext db, CancellationToken ct) =>
         {
-            var wishlist = await db.Wishlist
+            var wishlist = await db.Wishlist.AsNoTracking()
                 .Include(fsp => fsp.Product)
                 .AsSplitQuery()
                 .Select(fsp => new Product

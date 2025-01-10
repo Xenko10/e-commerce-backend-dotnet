@@ -15,7 +15,9 @@ public sealed class ProductsEndpoints : IEndpoint
         productsModule.MapGet("/{productId:int}",
             async Task<Results<Ok<Product>, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
             {
-                var item = await db.Products.FirstOrDefaultAsync(p => p.Id == productId, cancellationToken: ct);
+                var item = await db.Products
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.Id == productId, cancellationToken: ct);
                 if (item is null)
                 {
                     return TypedResults.NotFound();
@@ -23,7 +25,7 @@ public sealed class ProductsEndpoints : IEndpoint
 
                 return TypedResults.Ok(item);
             });
-
+        
         productsModule.MapDelete("/{productId:int}",
             async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
             {
@@ -47,7 +49,9 @@ public sealed class ProductsEndpoints : IEndpoint
                     return TypedResults.BadRequest();
                 }
 
-                var totalProducts = await db.Products.CountAsync(ct);
+                var totalProducts = await db.Products
+                    .AsNoTracking()
+                    .CountAsync(ct);
                 var totalPages = (int)Math.Ceiling(totalProducts / (double)pageSize);
 
                 if (page > totalPages)
@@ -56,6 +60,7 @@ public sealed class ProductsEndpoints : IEndpoint
                 }
 
                 var products = await db.Products
+                    .AsNoTracking()
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync(ct);

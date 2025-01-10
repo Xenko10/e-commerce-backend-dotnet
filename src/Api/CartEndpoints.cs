@@ -13,7 +13,7 @@ public sealed class CartEndpoints : IEndpoint
         var cartModule = routes.MapGroup("/cart").WithTags("Cart");
         cartModule.MapGet("", async Task<Ok<List<ProductWithQuantityDto>>> (AppDbContext db, CancellationToken ct) =>
         {
-            var cart = await db.Cart
+            var cart = await db.Cart.AsNoTracking()
                 .Include(fsp => fsp.Product)
                 .AsSplitQuery()
                 .Select(fsp => new ProductWithQuantityDto
