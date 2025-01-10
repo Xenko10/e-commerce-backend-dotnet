@@ -1,7 +1,9 @@
 TODO:
 - [x] delete product endpoint
 - [x] delete flash sales product endpoint
-- [ ] register / login
-- [ ] product catalog (with categories and pagination)
-- [ ] profile page
+- [x] register / login
+- [ ] authorization
+- [x] product catalog with pagination
+- [ ] checkout with address and payment
+- [ ] profile page?
 
