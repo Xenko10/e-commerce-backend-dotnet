@@ -56,7 +56,7 @@ public sealed class AccountEndpoints : IEndpoint
                 if (result.Succeeded)
                 {
                     var user = await userManager.FindByEmailAsync(model.Email);
-                    var token = GenerateJwtToken(user);
+                    var token = GenerateJwtToken(user ?? throw new InvalidOperationException());
 
                     var response =
                         new LoginResponseDto { UserId = user.Id, Token = token, Message = "Login successful" };
@@ -70,12 +70,12 @@ public sealed class AccountEndpoints : IEndpoint
     private string GenerateJwtToken(IdentityUser user)
     {
         var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
-        var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSecret));
+        var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSecret ?? throw new InvalidOperationException()));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id), new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id), new Claim(JwtRegisteredClaimNames.Email, user.Email ?? throw new InvalidOperationException()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 

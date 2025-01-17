@@ -49,7 +49,7 @@ builder.Services.Configure<IdentityOptions>(options =>
 Env.Load();
 
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
-var key = Encoding.ASCII.GetBytes(jwtSecret);
+var key = Encoding.ASCII.GetBytes(jwtSecret ?? throw new InvalidOperationException());
 
 builder.Services.AddAuthentication(options =>
 {
