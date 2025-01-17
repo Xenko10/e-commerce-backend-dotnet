@@ -32,7 +32,7 @@ public sealed class WishlistEndpoints : IEndpoint
             return TypedResults.Ok(wishlist);
         });
 
-        wishlistModule.MapPost("/{productId:int}",
+        wishlistModule.MapPost("/{productId:int}", [Authorize]
             async Task<Results<Created<Product>, NotFound, BadRequest>> (AppDbContext db, int productId,
                 CancellationToken ct) =>
             {
@@ -60,7 +60,7 @@ public sealed class WishlistEndpoints : IEndpoint
                 return TypedResults.Created($"/{newWishlistProduct.Id}", product);
             });
 
-        wishlistModule.MapDelete("/{productId:int}",
+        wishlistModule.MapDelete("/{productId:int}", [Authorize]
             async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
             {
                 var wishlistProduct = await db.Wishlist.FirstOrDefaultAsync(fsp => fsp.ProductId == productId, ct);

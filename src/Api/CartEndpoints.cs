@@ -35,7 +35,7 @@ public sealed class CartEndpoints : IEndpoint
                 return TypedResults.Ok(cart);
             });
 
-        cartModule.MapPost("/{productId:int}",
+        cartModule.MapPost("/{productId:int}", [Authorize]
             async Task<Results<Created<CartProduct>, NotFound, BadRequest>> (AppDbContext db, int productId,
                 CancellationToken ct) =>
             {
@@ -63,7 +63,7 @@ public sealed class CartEndpoints : IEndpoint
                 return TypedResults.Created($"/cart/{newCartProduct.ProductId}", newCartProduct);
             });
 
-        cartModule.MapPut("/{productId:int}/quantity/{quantity:int}",
+        cartModule.MapPut("/{productId:int}/quantity/{quantity:int}", [Authorize]
             async Task<Results<NoContent, NotFound, BadRequest>> (AppDbContext db, int productId, int quantity,
                 CancellationToken ct) =>
             {
@@ -82,7 +82,7 @@ public sealed class CartEndpoints : IEndpoint
                 return TypedResults.NoContent();
             });
 
-        cartModule.MapDelete("/{productId:int}",
+        cartModule.MapDelete("/{productId:int}", [Authorize]
             async Task<Results<NoContent, NotFound>> (AppDbContext db, int productId, CancellationToken ct) =>
             {
                 var cartProduct = await db.Cart.Where(fsp => fsp.ProductId == productId)
