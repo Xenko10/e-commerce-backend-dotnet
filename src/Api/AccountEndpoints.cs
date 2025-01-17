@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 using Ecommerce.Dto;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Ecommerce.Api;
 
@@ -36,6 +40,7 @@ public sealed class AccountEndpoints : IEndpoint
                 return TypedResults.BadRequest(creationErrors);
             });
 
+
         accountModule.MapPost("/login",
             async Task<Results<Ok<LoginResponseDto>, UnauthorizedHttpResult>> (
                 SignInManager<IdentityUser> signInManager,
@@ -51,11 +56,36 @@ public sealed class AccountEndpoints : IEndpoint
                 if (result.Succeeded)
                 {
                     var user = await userManager.FindByEmailAsync(model.Email);
-                    var response = new LoginResponseDto { UserId = user.Id, Message = "Login successful" };
+                    var token = GenerateJwtToken(user);
+
+                    var response =
+                        new LoginResponseDto { UserId = user.Id, Token = token, Message = "Login successful" };
                     return TypedResults.Ok(response);
                 }
 
                 return TypedResults.Unauthorized();
             });
+    }
+
+    private string GenerateJwtToken(IdentityUser user)
+    {
+        var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
+        var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSecret));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id), new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: "http://localhost:3000",
+            audience: "http://localhost:3000",
+            claims: claims,
+            expires: DateTime.Now.AddDays(31),
+            signingCredentials: creds);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

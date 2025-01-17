@@ -1,6 +1,7 @@
 using Ecommerce.Dto;
 using Ecommerce.Model;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,27 +12,28 @@ public sealed class CartEndpoints : IEndpoint
     public void AddRoutes(IEndpointRouteBuilder routes)
     {
         var cartModule = routes.MapGroup("/cart").WithTags("Cart");
-        cartModule.MapGet("", async Task<Ok<List<ProductWithQuantityDto>>> (AppDbContext db, CancellationToken ct) =>
-        {
-            var cart = await db.Cart.AsNoTracking()
-                .Include(fsp => fsp.Product)
-                .AsSplitQuery()
-                .Select(fsp => new ProductWithQuantityDto
-                {
-                    Id = fsp.Product.Id,
-                    Url = fsp.Product.Url,
-                    Alt = fsp.Product.Alt,
-                    Header = fsp.Product.Header,
-                    Price = fsp.Product.Price,
-                    PriceAfterDiscount = fsp.Product.PriceAfterDiscount,
-                    Stars = fsp.Product.Stars,
-                    Opinions = fsp.Product.Opinions,
-                    Quantity = fsp.Quantity
-                })
-                .ToListAsync(ct);
+        cartModule.MapGet("", [Authorize]
+            async Task<Ok<List<ProductWithQuantityDto>>> (AppDbContext db, CancellationToken ct) =>
+            {
+                var cart = await db.Cart.AsNoTracking()
+                    .Include(fsp => fsp.Product)
+                    .AsSplitQuery()
+                    .Select(fsp => new ProductWithQuantityDto
+                    {
+                        Id = fsp.Product.Id,
+                        Url = fsp.Product.Url,
+                        Alt = fsp.Product.Alt,
+                        Header = fsp.Product.Header,
+                        Price = fsp.Product.Price,
+                        PriceAfterDiscount = fsp.Product.PriceAfterDiscount,
+                        Stars = fsp.Product.Stars,
+                        Opinions = fsp.Product.Opinions,
+                        Quantity = fsp.Quantity
+                    })
+                    .ToListAsync(ct);
 
-            return TypedResults.Ok(cart);
-        });
+                return TypedResults.Ok(cart);
+            });
 
         cartModule.MapPost("/{productId:int}",
             async Task<Results<Created<CartProduct>, NotFound, BadRequest>> (AppDbContext db, int productId,

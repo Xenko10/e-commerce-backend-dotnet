@@ -1,5 +1,6 @@
 using Ecommerce.Model;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,7 +12,7 @@ public sealed class WishlistEndpoints : IEndpoint
     {
         var wishlistModule = routes.MapGroup("/wishlist").WithTags("Wishlist");
 
-        wishlistModule.MapGet("", async Task<Ok<List<Product>>> (AppDbContext db, CancellationToken ct) =>
+        wishlistModule.MapGet("", [Authorize] async Task<Ok<List<Product>>> (AppDbContext db, CancellationToken ct) =>
         {
             var wishlist = await db.Wishlist.AsNoTracking()
                 .Include(fsp => fsp.Product)
