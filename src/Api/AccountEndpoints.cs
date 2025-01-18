@@ -59,7 +59,7 @@ public sealed class AccountEndpoints : IEndpoint
                     var token = GenerateJwtToken(user ?? throw new InvalidOperationException());
 
                     var response =
-                        new LoginResponseDto { UserId = user.Id, Token = token, Message = "Login successful" };
+                        new LoginResponseDto {  Token = token, Message = "Login successful" };
                     return TypedResults.Ok(response);
                 }
 
