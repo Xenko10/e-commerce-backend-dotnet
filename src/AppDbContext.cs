@@ -14,4 +14,7 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
     public DbSet<CarouselProduct> CarouselProducts { get; set; }
     public DbSet<WishlistProduct> Wishlist { get; set; }
     public DbSet<CartProduct> Cart { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<UserDetails> UserDetails { get; set; }
+    public DbSet<OrderProduct> OrderProducts { get; set; }
 }
